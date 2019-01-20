@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-public class HideInMSB
+public class HideInLSB
 {
     public static void main(String[] args) throws IOException
     {
