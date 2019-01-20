@@ -2,10 +2,12 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-public class ImageLoad
+public class HideInLSB
 {
     public static void main(String[] args)
     {
@@ -20,7 +22,7 @@ public class ImageLoad
             System.out.println(e);
         }
         
-        hideData("Hii Jay!Hii manthan", "img1.jpg");
+        hideData("Hii Jay!Hii manthan133", "img1.jpg");
         String secret= retrieveData("answer_Signify.png");
         System.out.println("hidden msg:"+secret);
     }
@@ -89,6 +91,7 @@ public class ImageLoad
     /* To hide data into image*/
     public static void hideData(String text, String path)
     {
+        
         byte[] nibbles = getNibbles(text);
 
         // System.out.println(nibbles.toString());
@@ -99,7 +102,7 @@ public class ImageLoad
         long remainingPixels = textLength%3;
 
         int currentNibble=0,currentPixel=0;
-
+        hideProperties(textLength,path);
         try 
         {
             img = ImageIO.read(new File(path));
@@ -123,7 +126,7 @@ public class ImageLoad
                 blue = (blue & 240) | nibbles[currentNibble++];
                 // System.out.println(nibbles[currentNibble-1] +" "+ blue);
 
-                int rgb = (red << 16 | green << 8 | blue);
+                int rgb = (pixel1.getAlpha()<<24 | red << 16 | green << 8 | blue);
                 img.setRGB(currentPixel/img.getWidth() ,currentPixel%img.getWidth(),rgb);
                 // Color temp = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
                 // System.out.println(temp.getRed()+" "+temp.getGreen()+" "+temp.getBlue()+" "+temp.getAlpha());
@@ -152,12 +155,14 @@ public class ImageLoad
                 img.setRGB(currentPixel/img.getWidth() ,currentPixel%img.getWidth(),rgb);
             }
 
-            hideProperties(textLength,path);
+            //hideProperties(textLength,path);
 
             String finalPath = "answer_Signify.png"; //_Signify
             File outputfile = new File(finalPath);
             ImageIO.write(img, "png", outputfile);
             
+            getProperty("new_answer_Signify.png");
+
             System.out.println("Done!");
         } 
         catch (IOException e) 
@@ -220,7 +225,18 @@ public class ImageLoad
 
         try 
         {
-            img = ImageIO.read(new File(path));
+            BufferedImage bi = ImageIO.read(new File(path));
+
+            img = new BufferedImage(bi.getWidth(),bi.getHeight(),BufferedImage.TYPE_INT_ARGB);
+
+            for(int i=0;i<bi.getHeight();i++)
+            {
+                for(int j=0;j<bi.getWidth();j++)
+                {
+                    img.setRGB(i, j,bi.getRGB(i,j));
+                }
+            }
+
             int totalPixles = img.getHeight()*img.getWidth();
             int currentPixle;
             int pixleGap = getAlphaGap(path);
@@ -228,25 +244,79 @@ public class ImageLoad
 
             for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
             {
-                Color pixle = new Color(img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth()));
+                int pixle = img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth());
+                System.out.print(Integer.toBinaryString(pixle)+" (1--> ");
 
-                int alpha = pixle.getAlpha();
-                alpha = (alpha & 240) | nibbles[currentNibble++];
-                
-                int rgb = (alpha<<24 |pixle.getRed() << 16 | pixle.getGreen() << 8 | pixle.getBlue());
+                pixle = pixle & 0xf0ffffff; //0x00ffffff
+                System.out.print(Integer.toBinaryString(pixle)+" (2--> ");
 
-                img.setRGB(currentPixle/img.getWidth() ,currentPixle%img.getWidth(),rgb);
-                
+                pixle |= nibbles[currentNibble++]<<24;
+                System.out.print(Integer.toBinaryString(pixle)+" (3--> ");
+
+                img.setRGB(currentPixle/img.getWidth() ,currentPixle%img.getWidth(),pixle);
+                pixle = (img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth()));
+                System.out.print(Integer.toBinaryString(pixle)+" final \n");    
             }
+
+            String finalPath = "new_answer_Signify.png"; //_Signify
+            File outputfile = new File(finalPath);
+            ImageIO.write(img, "png", outputfile);
         }
         catch(Exception e)
         {
 
         }
     }
+
     public static int getLength(String path)
     {
-        return 38;
+        String[] properties = getProperty(path).split("!");
+        
+        System.out.println(getProperty(path)+" "+path);
+        return Integer.parseInt(properties[1]);
+    }
+
+    public static String getProperty(String path)
+    {       
+        BufferedImage img = null;
+        String property="";
+
+        try
+        {
+            img = ImageIO.read(new File(path));
+            int totalPixles = img.getHeight()*img.getWidth();
+            int currentPixle;
+            int pixleGap = getAlphaGap(path);
+            ArrayList<Byte> append = new ArrayList(); 
+
+            for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
+            {
+                int pixle = img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth());
+                /*int alpha1 = pixle.getAlpha();
+                System.out.print(alpha1+" "+ path+" " );
+
+                currentPixle+=pixleGap;
+                pixle = new Color(img.getRGB( currentPixle/img.getWidth(),currentPixle%img.getWidth()));
+                int alpha2 = pixle.getAlpha();
+                System.out.print(alpha2+" " );
+
+                append.add(new Byte((byte)( (byte)( (alpha1&15)<<4) | (byte)(alpha2&15) ) ));*/
+                System.out.print(Integer.toBinaryString(pixle)+" ");
+            }
+
+            byte[] bytes = new byte[append.size()];
+            for(int i=0;i<append.size();i++)
+                bytes[i]=append.get(i).byteValue();    
+
+            property = new String(bytes);
+            System.out.println("correct! "+property);
+        }
+        catch(Exception e)
+        {
+            //System.out.println("getProperty: "+e);
+        }
+
+        return property;
     }
     //Max data that can be hidden in the image
     public static long getMaxStorableData(String path) throws IOException
@@ -259,7 +329,7 @@ public class ImageLoad
         return maxStorableData;
     }
 
-    //No of pixles alpha nibbles required to store length of the data
+    //No of pixles alpha nibbles required to store length and signature of the data
     public static int getMaxAlphaRequired(String path) throws IOException
     {
         int signatureAlpha = 32; //signify! + !fyingis
