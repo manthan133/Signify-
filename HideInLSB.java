@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 
 public class HideInLSB
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
         try
         {
@@ -22,16 +22,40 @@ public class HideInLSB
             System.out.println(e);
         }
         
-        hideData("Hii Jay!Hii manthan133", "img1.jpg");
-        String secret= retrieveData("answer_Signify.png");
+        String path="img1.jpg";
+        BufferedImage original = ImageIO.read(new File(path));
+        BufferedImage signified = new BufferedImage(original.getWidth(),original.getHeight(),BufferedImage.TYPE_INT_ARGB);
+        
+        for(int i=0;i<original.getHeight();i++)
+            for(int j=0;j<original.getWidth();j++)
+                signified.setRGB(i, j,original.getRGB(i,j));
+        
+        hideData("Yipee! message retrieved successfully!!",signified);
+        getProperty(signified);
+        String secret= retrieveData(signified);
         System.out.println("hidden msg:"+secret);
     }
     
-    /* to retrieve Data  from signified image */ 
-    private static String retrieveData(String path)
+    private static boolean isSignified(BufferedImage signified)
     {
-        BufferedImage img = null;
-        byte[] nibbles = new byte[getLength(path)];
+        String[] properties = getProperty(signified).split("!");
+        String initialSign = "signify";
+        String finalSign = "yfingis";
+
+        return (properties[0].equals(initialSign) && properties[2].equals(finalSign));
+    } 
+
+    /* to retrieve Data  from signified image */ 
+    private static String retrieveData(BufferedImage signified)
+    {
+        System.out.println(isSignified(signified));
+        if(!isSignified(signified))
+        {
+            System.out.println("Not Signified!");
+            return "";
+        }
+
+        byte[] nibbles = new byte[getLength(signified)];
         String secret = null;
         long textLength=nibbles.length;
         long fullPixels = (textLength/3)*3;
@@ -40,10 +64,9 @@ public class HideInLSB
 
         try
         {
-            img = ImageIO.read(new File(path));
             while(currentNibble<fullPixels)
             {
-                Color pixel1 = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
                 //System.out.println(pixel1.getRed()+" "+pixel1.getGreen()+" "+pixel1.getBlue()+" "+pixel1.getAlpha());
 
                 int red = pixel1.getRed();
@@ -63,7 +86,7 @@ public class HideInLSB
             }
             if(remainingPixels > 0)
             {
-                Color pixel1 = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
 
                 int red = pixel1.getRed();
                 nibbles[currentNibble++] = (byte)(red & 15) ;
@@ -71,7 +94,7 @@ public class HideInLSB
             }
             if( remainingPixels==2)
             {
-                Color pixel1 = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
 
                 int green = pixel1.getGreen();
                 nibbles[currentNibble++] = (byte)(green & 15);
@@ -89,28 +112,26 @@ public class HideInLSB
     }
 
     /* To hide data into image*/
-    public static void hideData(String text, String path)
+    public static void hideData(String text,BufferedImage signified)
     {
         
         byte[] nibbles = getNibbles(text);
 
         // System.out.println(nibbles.toString());
-        BufferedImage img = null;
         int textLength=nibbles.length;
         //System.out.println(textLength);
         long fullPixels = (textLength/3)*3;
         long remainingPixels = textLength%3;
 
         int currentNibble=0,currentPixel=0;
-        hideProperties(textLength,path);
+        hideProperties(textLength,signified);
         try 
         {
-            img = ImageIO.read(new File(path));
             //img.getHeight()*img.getWidth()
             while(currentNibble < fullPixels)
             {
                 //System.out.println(img.getHeight()+" "+img.getWidth());
-                Color pixel1 = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
                 //Color pixel2 = new Color(img.getRGB( p/img.getWidth() ,p%img.getWidth()));
 
                 //System.out.println(pixel1.getRed()+" "+pixel1.getGreen()+" "+pixel1.getBlue()+" "+pixel1.getAlpha());
@@ -127,7 +148,7 @@ public class HideInLSB
                 // System.out.println(nibbles[currentNibble-1] +" "+ blue);
 
                 int rgb = (pixel1.getAlpha()<<24 | red << 16 | green << 8 | blue);
-                img.setRGB(currentPixel/img.getWidth() ,currentPixel%img.getWidth(),rgb);
+                signified.setRGB(currentPixel/signified.getWidth() ,currentPixel%signified.getWidth(),rgb);
                 // Color temp = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
                 // System.out.println(temp.getRed()+" "+temp.getGreen()+" "+temp.getBlue()+" "+temp.getAlpha());
                  
@@ -136,32 +157,32 @@ public class HideInLSB
             }
             if(remainingPixels > 0)
             {
-                Color pixel1 = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
 
                 int red = pixel1.getRed();
                 red = (red & 240) | nibbles[currentNibble++];
 
                 int rgb = (red << 16 | pixel1.getGreen() << 8 | pixel1.getBlue());
-                img.setRGB(currentPixel/img.getWidth() ,currentPixel%img.getWidth(),rgb);
+                signified.setRGB(currentPixel/signified.getWidth() ,currentPixel%signified.getWidth(),rgb);
             }
             if( remainingPixels==2)
             {
-                Color pixel1 = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
 
                 int green = pixel1.getGreen();
                 green = (green & 240) | nibbles[currentNibble++];
 
                 int rgb = (pixel1.getRed() << 16 | green << 8 | pixel1.getBlue());
-                img.setRGB(currentPixel/img.getWidth() ,currentPixel%img.getWidth(),rgb);
+                signified.setRGB(currentPixel/signified.getWidth() ,currentPixel%signified.getWidth(),rgb);
             }
 
-            //hideProperties(textLength,path);
+            hideProperties(textLength,signified);
 
             String finalPath = "answer_Signify.png"; //_Signify
             File outputfile = new File(finalPath);
-            ImageIO.write(img, "png", outputfile);
+            ImageIO.write(signified, "png", outputfile);
             
-            getProperty("new_answer_Signify.png");
+            getProperty(signified);
 
             System.out.println("Done!");
         } 
@@ -211,40 +232,24 @@ public class HideInLSB
     }
 
     //Hide Signature and Length
-    public static void hideProperties(int length,String path)
+    public static void hideProperties(int length,BufferedImage signified)
     {
-        BufferedImage img = null;
-        
         String sign = "signify!";
         String reverse = new StringBuilder(sign).reverse().toString();
 
         String property = sign+String.valueOf(length)+reverse;
         byte[] nibbles = getNibbles(property);
         
-        System.out.println(property);
-
         try 
         {
-            BufferedImage bi = ImageIO.read(new File(path));
-
-            img = new BufferedImage(bi.getWidth(),bi.getHeight(),BufferedImage.TYPE_INT_ARGB);
-
-            for(int i=0;i<bi.getHeight();i++)
-            {
-                for(int j=0;j<bi.getWidth();j++)
-                {
-                    img.setRGB(i, j,bi.getRGB(i,j));
-                }
-            }
-
-            int totalPixles = img.getHeight()*img.getWidth();
+            int totalPixles = signified.getHeight()*signified.getWidth();
             int currentPixle;
-            int pixleGap = getAlphaGap(path);
+            int pixleGap = getAlphaGap(signified);
             int currentNibble=0;
 
             for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
             {
-                int pixle = img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth());
+                int pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
                 System.out.print(Integer.toBinaryString(pixle)+" (1--> ");
 
                 pixle = pixle & 0xf0ffffff; //0x00ffffff
@@ -253,14 +258,10 @@ public class HideInLSB
                 pixle |= nibbles[currentNibble++]<<24;
                 System.out.print(Integer.toBinaryString(pixle)+" (3--> ");
 
-                img.setRGB(currentPixle/img.getWidth() ,currentPixle%img.getWidth(),pixle);
-                pixle = (img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth()));
+                signified.setRGB(currentPixle/signified.getWidth() ,currentPixle%signified.getWidth(),pixle);
+                pixle = (signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth()));
                 System.out.print(Integer.toBinaryString(pixle)+" final \n");    
             }
-
-            String finalPath = "new_answer_Signify.png"; //_Signify
-            File outputfile = new File(finalPath);
-            ImageIO.write(img, "png", outputfile);
         }
         catch(Exception e)
         {
@@ -268,40 +269,42 @@ public class HideInLSB
         }
     }
 
-    public static int getLength(String path)
+    public static int getLength(BufferedImage signified)
     {
-        String[] properties = getProperty(path).split("!");
+        String[] properties = getProperty(signified).split("!");
         
-        System.out.println(getProperty(path)+" "+path);
+        System.out.println(getProperty(signified));
         return Integer.parseInt(properties[1]);
     }
 
-    public static String getProperty(String path)
+    public static String getProperty(BufferedImage signified)
     {       
-        BufferedImage img = null;
         String property="";
 
         try
         {
-            img = ImageIO.read(new File(path));
-            int totalPixles = img.getHeight()*img.getWidth();
+            int totalPixles = signified.getHeight()*signified.getWidth();
             int currentPixle;
-            int pixleGap = getAlphaGap(path);
+            int pixleGap = getAlphaGap(signified);
             ArrayList<Byte> append = new ArrayList(); 
 
             for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
             {
-                int pixle = img.getRGB( currentPixle/img.getWidth() ,currentPixle%img.getWidth());
-                /*int alpha1 = pixle.getAlpha();
-                System.out.print(alpha1+" "+ path+" " );
+                int pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
+                //byte alpha1 = (byte)((pixle & 0x0f000000)>>>16);
+                byte alpha1 = (byte)((pixle & 251658240)>>>20);
+                //System.out.print("pixle "+Integer.toBinaryString(pixle)+" ");
+                //System.out.print(Integer.toBinaryString(alpha1)+" and ");
 
                 currentPixle+=pixleGap;
-                pixle = new Color(img.getRGB( currentPixle/img.getWidth(),currentPixle%img.getWidth()));
-                int alpha2 = pixle.getAlpha();
-                System.out.print(alpha2+" " );
+                pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
+                //System.out.print("for pixle "+Integer.toBinaryString(pixle)+" ");
+                //byte alpha2 = (byte)((pixle & 0x0f000000)>>>24);
+                byte alpha2 = (byte)((pixle & 251658240)>>>24);
+                //System.out.print(Integer.toBinaryString(alpha2)+" gives ");
 
-                append.add(new Byte((byte)( (byte)( (alpha1&15)<<4) | (byte)(alpha2&15) ) ));*/
-                System.out.print(Integer.toBinaryString(pixle)+" ");
+                append.add(new Byte((byte)(alpha1|alpha2)));
+                //System.out.println(append.get(append.size()-1));
             }
 
             byte[] bytes = new byte[append.size()];
@@ -319,29 +322,23 @@ public class HideInLSB
         return property;
     }
     //Max data that can be hidden in the image
-    public static long getMaxStorableData(String path) throws IOException
+    public static long getMaxStorableData(BufferedImage signified) throws IOException
     {
-        BufferedImage img = null;
-        img = ImageIO.read(new File(path));
-        
-        long maxStorableData = (long)Math.floor((img.getHeight()*img.getWidth()*(12.0/32)));
+        long maxStorableData = (long)Math.floor((signified.getHeight()*signified.getWidth()*(12.0/32)));
         
         return maxStorableData;
     }
 
     //No of pixles alpha nibbles required to store length and signature of the data
-    public static int getMaxAlphaRequired(String path) throws IOException
+    public static int getMaxAlphaRequired(BufferedImage signified) throws IOException
     {
         int signatureAlpha = 32; //signify! + !fyingis
-        return (int)(Math.ceil(Math.log(getMaxStorableData(path))/(Math.log(2)*4)))+signatureAlpha;
+        return (int)(Math.ceil(Math.log(getMaxStorableData(signified))/(Math.log(2)*4)))+signatureAlpha;
     }
 
     //How much gap can be kept between two aplha nibbles which shows length. i.e so that we don't have to store in contigous manner!
-    public static int getAlphaGap(String path) throws IOException
+    public static int getAlphaGap(BufferedImage signified) throws IOException
     {
-	    BufferedImage img = null;
-        img = ImageIO.read(new File(path));
-
-        return Math.floorDiv(img.getWidth()*img.getHeight(),getMaxAlphaRequired(path));
+        return Math.floorDiv(signified.getWidth()*signified.getHeight(),getMaxAlphaRequired(signified));
     }
 }
