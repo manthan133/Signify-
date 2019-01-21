@@ -30,10 +30,12 @@ public class HideInLSB
             for(int j=0;j<original.getWidth();j++)
                 signified.setRGB(i, j,original.getRGB(i,j));
         
-        hideData("Yipee! message retrieved successfully!!",signified);
+        hideData("Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!",signified);
         getProperty(signified);
         String secret= retrieveData(signified);
         System.out.println("hidden msg:"+secret);
+
+        System.out.println("MAX: "+getMaxStorableData(signified)+" Alpha: "+getMaxAlphaRequired(signified)+" GAP: "+getAlphaGap(signified));
     }
     
     private static boolean isSignified(BufferedImage signified)
@@ -42,7 +44,7 @@ public class HideInLSB
         String initialSign = "signify";
         String finalSign = "yfingis";
 
-        return (properties[0].equals(initialSign) && properties[2].equals(finalSign));
+        return (properties[0].equals(initialSign) && properties[2].substring(0,finalSign.length()).equals(finalSign));
     } 
 
     /* to retrieve Data  from signified image */ 
@@ -275,6 +277,9 @@ public class HideInLSB
         
         System.out.println(getProperty(signified));
         return Integer.parseInt(properties[1]);
+
+        //System.out.println("Here property "+getProperty(signified));
+        //return 78; 
     }
 
     public static String getProperty(BufferedImage signified)
@@ -290,13 +295,17 @@ public class HideInLSB
 
             for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
             {
+                System.out.println("current pixle: "+currentPixle+","+currentPixle/signified.getWidth()+","+currentPixle%signified.getWidth());
                 int pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
                 //byte alpha1 = (byte)((pixle & 0x0f000000)>>>16);
                 byte alpha1 = (byte)((pixle & 251658240)>>>20);
                 //System.out.print("pixle "+Integer.toBinaryString(pixle)+" ");
-                //System.out.print(Integer.toBinaryString(alpha1)+" and ");
-
+                //System.out.print(Integer.toBinaryString(alpha1)+" and ");              
                 currentPixle+=pixleGap;
+
+                if(currentPixle>=totalPixles) 
+                break;
+
                 pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
                 //System.out.print("for pixle "+Integer.toBinaryString(pixle)+" ");
                 //byte alpha2 = (byte)((pixle & 0x0f000000)>>>24);
@@ -306,6 +315,7 @@ public class HideInLSB
                 append.add(new Byte((byte)(alpha1|alpha2)));
                 //System.out.println(append.get(append.size()-1));
             }
+            
 
             byte[] bytes = new byte[append.size()];
             for(int i=0;i<append.size();i++)
@@ -313,10 +323,12 @@ public class HideInLSB
 
             property = new String(bytes);
             System.out.println("correct! "+property);
+            System.out.flush();
         }
         catch(Exception e)
         {
-            //System.out.println("getProperty: "+e);
+            System.out.println("getProperty: "+e);
+            System.out.println(signified.getHeight()+","+signified.getWidth());
         }
 
         return property;
@@ -333,12 +345,17 @@ public class HideInLSB
     public static int getMaxAlphaRequired(BufferedImage signified) throws IOException
     {
         int signatureAlpha = 32; //signify! + !fyingis
-        return (int)(Math.ceil(Math.log(getMaxStorableData(signified))/(Math.log(2)*4)))+signatureAlpha;
+        
+        int maxAlpha = String.valueOf(getMaxStorableData(signified)).length()*2;
+        maxAlpha+=signatureAlpha;
+
+        return maxAlpha;
     }
 
     //How much gap can be kept between two aplha nibbles which shows length. i.e so that we don't have to store in contigous manner!
     public static int getAlphaGap(BufferedImage signified) throws IOException
     {
+        //return (int)Math.floorDiv(getMaxStorableData(signified),getMaxAlphaRequired(signified));
         return Math.floorDiv(signified.getWidth()*signified.getHeight(),getMaxAlphaRequired(signified));
     }
 }
