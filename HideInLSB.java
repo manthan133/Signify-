@@ -26,11 +26,11 @@ public class HideInLSB
         BufferedImage original = ImageIO.read(new File(path));
         BufferedImage signified = new BufferedImage(original.getWidth(),original.getHeight(),BufferedImage.TYPE_INT_ARGB);
         
-        for(int i=0;i<original.getHeight();i++)
-            for(int j=0;j<original.getWidth();j++)
+        for(int i=0;i<original.getWidth();i++)
+            for(int j=0;j<original.getHeight();j++)
                 signified.setRGB(i, j,original.getRGB(i,j));
         
-        hideData("Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!Yipee! message retrieved successfully!!",signified);
+        hideData("hope you'll get it",signified);
         getProperty(signified);
         String secret= retrieveData(signified);
         System.out.println("hidden msg:"+secret);
@@ -68,7 +68,7 @@ public class HideInLSB
         {
             while(currentNibble<fullPixels)
             {
-                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel%signified.getWidth() ,currentPixel/signified.getWidth()));
                 //System.out.println(pixel1.getRed()+" "+pixel1.getGreen()+" "+pixel1.getBlue()+" "+pixel1.getAlpha());
 
                 int red = pixel1.getRed();
@@ -88,7 +88,7 @@ public class HideInLSB
             }
             if(remainingPixels > 0)
             {
-                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel%signified.getWidth() ,currentPixel/signified.getWidth()));
 
                 int red = pixel1.getRed();
                 nibbles[currentNibble++] = (byte)(red & 15) ;
@@ -96,7 +96,7 @@ public class HideInLSB
             }
             if( remainingPixels==2)
             {
-                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel%signified.getWidth() ,currentPixel/signified.getWidth()));
 
                 int green = pixel1.getGreen();
                 nibbles[currentNibble++] = (byte)(green & 15);
@@ -133,7 +133,7 @@ public class HideInLSB
             while(currentNibble < fullPixels)
             {
                 //System.out.println(img.getHeight()+" "+img.getWidth());
-                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel%signified.getWidth() ,currentPixel/signified.getWidth()));
                 //Color pixel2 = new Color(img.getRGB( p/img.getWidth() ,p%img.getWidth()));
 
                 //System.out.println(pixel1.getRed()+" "+pixel1.getGreen()+" "+pixel1.getBlue()+" "+pixel1.getAlpha());
@@ -150,7 +150,7 @@ public class HideInLSB
                 // System.out.println(nibbles[currentNibble-1] +" "+ blue);
 
                 int rgb = (pixel1.getAlpha()<<24 | red << 16 | green << 8 | blue);
-                signified.setRGB(currentPixel/signified.getWidth() ,currentPixel%signified.getWidth(),rgb);
+                signified.setRGB(currentPixel%signified.getWidth() ,currentPixel/signified.getWidth(),rgb);
                 // Color temp = new Color(img.getRGB( currentPixel/img.getWidth() ,currentPixel%img.getWidth()));
                 // System.out.println(temp.getRed()+" "+temp.getGreen()+" "+temp.getBlue()+" "+temp.getAlpha());
                  
@@ -159,31 +159,30 @@ public class HideInLSB
             }
             if(remainingPixels > 0)
             {
-                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel%signified.getWidth() ,currentPixel/signified.getWidth()));
 
                 int red = pixel1.getRed();
                 red = (red & 240) | nibbles[currentNibble++];
 
                 int rgb = (red << 16 | pixel1.getGreen() << 8 | pixel1.getBlue());
-                signified.setRGB(currentPixel/signified.getWidth() ,currentPixel%signified.getWidth(),rgb);
+                signified.setRGB(currentPixel%signified.getWidth() ,currentPixel/signified.getWidth(),rgb);
             }
             if( remainingPixels==2)
             {
-                Color pixel1 = new Color(signified.getRGB( currentPixel/signified.getWidth() ,currentPixel%signified.getWidth()));
+                Color pixel1 = new Color(signified.getRGB( currentPixel%signified.getWidth() ,currentPixel/signified.getWidth()));
 
                 int green = pixel1.getGreen();
                 green = (green & 240) | nibbles[currentNibble++];
 
                 int rgb = (pixel1.getRed() << 16 | green << 8 | pixel1.getBlue());
-                signified.setRGB(currentPixel/signified.getWidth() ,currentPixel%signified.getWidth(),rgb);
+                signified.setRGB(currentPixel%signified.getWidth() ,currentPixel/signified.getWidth(),rgb);
             }
 
             hideProperties(textLength,signified);
 
-            String finalPath = "answer_Signify.png"; //_Signify
+            String finalPath = "jayMail_Signify.png"; //_Signify
             File outputfile = new File(finalPath);
-            ImageIO.write(signified, "png", outputfile);
-            
+            ImageIO.write(signified, "png", outputfile);    
             getProperty(signified);
 
             System.out.println("Done!");
@@ -260,8 +259,8 @@ public class HideInLSB
                 pixle |= nibbles[currentNibble++]<<24;
                 System.out.print(Integer.toBinaryString(pixle)+" (3--> ");
 
-                signified.setRGB(currentPixle/signified.getWidth() ,currentPixle%signified.getWidth(),pixle);
-                pixle = (signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth()));
+                signified.setRGB(currentPixle%signified.getWidth() ,currentPixle/signified.getWidth(),pixle);
+                pixle = (signified.getRGB( currentPixle%signified.getWidth() ,currentPixle/signified.getWidth()));
                 System.out.print(Integer.toBinaryString(pixle)+" final \n");    
             }
         }
@@ -295,8 +294,8 @@ public class HideInLSB
 
             for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
             {
-                System.out.println("current pixle: "+currentPixle+","+currentPixle/signified.getWidth()+","+currentPixle%signified.getWidth());
-                int pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
+                System.out.println("current pixle: "+currentPixle+","+currentPixle%signified.getWidth()+","+currentPixle/signified.getWidth());
+                int pixle = signified.getRGB( currentPixle%signified.getWidth() ,currentPixle/signified.getWidth());
                 //byte alpha1 = (byte)((pixle & 0x0f000000)>>>16);
                 byte alpha1 = (byte)((pixle & 251658240)>>>20);
                 //System.out.print("pixle "+Integer.toBinaryString(pixle)+" ");
@@ -306,7 +305,7 @@ public class HideInLSB
                 if(currentPixle>=totalPixles) 
                 break;
 
-                pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
+                pixle = signified.getRGB( currentPixle%signified.getWidth() ,currentPixle/signified.getWidth());
                 //System.out.print("for pixle "+Integer.toBinaryString(pixle)+" ");
                 //byte alpha2 = (byte)((pixle & 0x0f000000)>>>24);
                 byte alpha2 = (byte)((pixle & 251658240)>>>24);
