@@ -250,7 +250,7 @@ public class HideInLSB
 
             for(currentPixle=0;currentPixle<totalPixles;currentPixle+=pixleGap)
             {
-                int pixle = signified.getRGB( currentPixle/signified.getWidth() ,currentPixle%signified.getWidth());
+                int pixle = signified.getRGB( currentPixl%signified.getWidth() ,currentPixle/signified.getWidth());
                 System.out.print(Integer.toBinaryString(pixle)+" (1--> ");
 
                 pixle = pixle & 0xf0ffffff; //0x00ffffff
